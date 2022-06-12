@@ -20,6 +20,7 @@ stations = {
     "Wirsbergstraße": "3700104",
     "Sanderring": "3700348",
     "Sanderglacisstraße": "3700346",
+    "Barbarossaplatz": "3700056"
 }
 
 
@@ -38,7 +39,11 @@ def get_departure_trs_and_last_departure_date_time(
     params = {
         "is_fs": "1",
         "is_xhr": "True",
-        "nameInfo_dm": station_id
+        "nameInfo_dm": station_id,
+        "itdDateTimeDepArr":"dep",
+        "type_dm":"any",
+        "mode_type":"",
+        "is_fs":"1"
     }
     if date:
         params["itdDateDayMonthYear"] = date
@@ -47,11 +52,15 @@ def get_departure_trs_and_last_departure_date_time(
     r = requests.get(departures_url, params=params)
     soup = BeautifulSoup(r.text, "html.parser")
     result = soup.find_all(attrs={"class": "results-tbody"})[0]
-    last_departure_time = soup.find("input", attrs={'class': 'last_departure_time'}).attrs['value']
-    last_departure_date = soup.find("input", attrs={'class': 'last_departure_date'}).attrs['value']
-    print(last_departure_date, last_departure_time)
-    return (c for c in result.children if (type(c) is element.Tag and c.name == "tr")), \
-        last_departure_date, last_departure_time
+    stops = [c for c in result.children if (type(c) is element.Tag and c.name == "tr")]
+
+    if len(stops) > 0:
+        last_departure_time = soup.find("input", attrs={'class': 'last_departure_time'}).attrs['value']
+        last_departure_date = soup.find("input", attrs={'class': 'last_departure_date'}).attrs['value']
+        print(last_departure_date, last_departure_time)
+        return stops, last_departure_date, last_departure_time
+    else:
+        return [], None, None
 
 
 def departures(station_id: str = stations["Sanderring"], date: str = None, time: str = None)\
@@ -118,6 +127,8 @@ def departures_by_datetime_range(
         for d in ds:
             if _end is None or d.datetime < _end:
                 yield d
+        if last_date is None:
+            break
         current_datetime = datetime.strptime(f"{last_date} {last_time}", "%d.%m.%Y %H:%M")
         if _end is None:
             break  # run loop exactly once if no end is given
