@@ -85,9 +85,9 @@ def stop_sequence(linkdata: dict,
         params["useRealtime"] = "1"
     if full_journey:
         params["tStOTType"] = "ALL"
-    print("request stop sequence", stopseq_url, params)
+    #print("request stop sequence", stopseq_url, params)
     r = requests.get(stopseq_url, params=params)
-    print("status code:", r.status_code)
+    #print("status code:", r.status_code)
     soup = BeautifulSoup(r.text, 'html.parser')
     trs_stops_off = soup.find_all(attrs={"class": "stops-off"})
     trs_stops_on = soup.find_all(attrs={"class": "stops-on"})
